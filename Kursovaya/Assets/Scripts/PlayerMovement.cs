@@ -5,22 +5,43 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    private Rigidbody2D player;
-    private Vector2 moveVector;
-    private float moveSpeed = 15.5f;
     
-    void Awake()
+    private Vector2 input;
+
+    public float moveSpeed;
+
+    private bool isMooving;
+
+    private void Update()
     {
-        player = GetComponent<Rigidbody2D>();
+        if (!isMooving)
+        {
+            input.x = Input.GetAxisRaw("Horizontal");
+            input.y = Input.GetAxisRaw("Vertical");
+
+            if (input != Vector2.zero) 
+            {
+                var targetPos = transform.position;
+                targetPos.x += input.x;
+                targetPos.y += input.y;
+
+                StartCoroutine(Move(targetPos));
+            }
+        }
     }
 
-    
-    void Update()
+    IEnumerator Move(Vector3 targetPos)
     {
-        moveVector.x = Input.GetAxis("Horizontal");
-        moveVector.y = Input.GetAxis("Vertical");
-        player.MovePosition(player.position + moveVector * moveSpeed * Time.deltaTime);
+        isMooving = true;
 
+        while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = targetPos;
 
+        isMooving = false;
     }
+
 }
