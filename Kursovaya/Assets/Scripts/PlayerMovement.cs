@@ -10,9 +10,11 @@ public class PlayerMovement : MonoBehaviour
 
     public float moveSpeed;
 
-    private bool isMooving;
+    private bool isMoving;
 
     private Animator animator;
+
+    public LayerMask solidObjectsLayer;
 
     private void Awake()
     {
@@ -22,31 +24,39 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!isMooving)
+       if (!isMoving)
         {
             input.x = Input.GetAxisRaw("Horizontal");
             input.y = Input.GetAxisRaw("Vertical");
 
-            if (input != Vector2.zero) 
+
+
+            if (input.x != 0) input.y = 0;
+
+            if (input != Vector2.zero)
             {
                 animator.SetFloat("moveX", input.x);
                 animator.SetFloat("moveY", input.y);
-                var targetPos = transform.position;
-                targetPos.x += input.x;
-                targetPos.y += input.y;
 
-                
 
-                StartCoroutine(Move(targetPos));
+                var targetPosition = transform.position;
+                targetPosition.x += input.x;
+                targetPosition.y += input.y;
+
+                if (IsWalkable(targetPosition)) 
+
+                StartCoroutine(Move(targetPosition));
             }
+            
+
         }
 
-        animator.SetBool("isMoving", isMooving);
+        animator.SetBool("isMoving", isMoving);
     }
 
     IEnumerator Move(Vector3 targetPos)
     {
-        isMooving = true;
+        isMoving = true;
 
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
@@ -55,7 +65,16 @@ public class PlayerMovement : MonoBehaviour
         }
         transform.position = targetPos;
 
-        isMooving = false;
+        isMoving = false;
+    }
+
+    private bool IsWalkable (Vector3 targetPos )
+    {
+        if (Physics2D.OverlapCircle(targetPos, 0.2f, solidObjectsLayer) != null) 
+        {
+            return false;
+        }
+        return true;
     }
 
 }
